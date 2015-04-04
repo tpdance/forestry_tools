@@ -1,0 +1,155 @@
+# Script:
+# Author: George Kipp
+# For: GEOG 32-641, Final Project
+# Created Date: March 27th, 2015
+# Last Modified Date: April 1, 2015
+# Description:
+
+# Modules: arcpy, os
+
+# Global Variables:
+
+# Local Variables:
+
+# Iteration Variables: line
+
+# Input Parameters:
+
+# Output:
+
+# Computation: none
+
+# import modules
+import arcpy, os
+
+# okay to overwrite output
+arcpy.env.overwriteOutput = True
+
+# initialize globals
+input_fc = r"E:\GIS\School\32641\Final\Wolf_Rx_proposed.shp"
+wind_from = 30
+output_fc = r"E:\GIS\School\32641\Final\Wolf_Rx_proposed_smoke_model.shp"
+coord_sys = arcpy.Describe(input_fc).spatialReference
+
+# input_fc = arcpy.GetParameterAsText(0) # input feature class
+# wind_dir = arcpy.GetParameterAsText(1) # wind direction
+# output_fc = arcpy.GetParameterAsText(2) # output feature class
+# coord_sys = arcpy.GetParameterAsText(3) # coordinate system
+
+out_space = os.path.dirname(input_fc) # output workspace
+
+wind_to = 0
+wind_plus = 0
+wind_minus = 0
+
+# input error checks
+if wind_from > 359:
+    print "Error: {0} is out of range. Please enter a number between 0 and 359 degrees.".format(str(wind_from))
+
+# create function for working with wind directions
+def wind_helper(wind_from):
+    global wind_to
+    if wind_from == 0:
+        wind_to = 180
+    elif wind_from <= 180:
+        wind_to = float(wind_from) + 180
+    else:
+        wind_to = float(wind_from) - 180
+    return wind_to
+    print wind_to
+
+# create helper functions for calculating wind spread
+def wind_plus(wind_to):
+    global wind_plus
+    if wind_to == 0:
+        wind_plus = 30
+    elif wind_to == 330:
+        wind_plus = 0
+    elif wind_to > 330 and wind_to <= 360:
+        wind_plus = 30 - (360 - wind_to)
+    elif wind_to > 0 and wind_to < 30:
+        wind_plus = wind_to + 30
+    else:
+        wind_plus = wind_to + 30
+    return wind_plus
+
+def wind_minus(wind_to):
+    global wind_minus
+    if wind_to == 0:
+        wind_minus = 330
+    elif wind_to == 330:
+        wind_minus = wind_to - 30
+    elif wind_to > 330 and wind_to <= 360:
+        wind_minus = wind_to - 30
+    elif wind_to > 0 and wind_to < 30:
+        wind_minus =  360 - (30 - wind_to)
+    else:
+        wind_minus = wind_to - 30
+    return wind_minus
+
+print wind_helper(wind_from)
+print wind_plus(wind_to)
+print wind_minus(wind_to)
+
+# create centroid point feature class of burn polygon
+centroid_name = "centroid.shp"
+centroid_point = arcpy.CreateFeatureclass_management(out_space, centroid_name, "POINT", "", "DISABLED", "DISABLED", coord_sys)
+arcpy.AddField_management(centroid_name, "X", "FLOAT",) # X coordinate of centroid point
+arcpy.AddField_management(centroid_name, "Y", "FLOAT",) # Y coordinate of centroid point
+arcpy.AddField_management(centroid_name, "DIST", "FLOAT") # distance for smoke line
+arcpy.AddField_management(centroid_name, "BR_PLUS", "FLOAT") # wind_plus bearing
+arcpy.AddField_management(centroid_name, "BR_MINUS", "FLOAT") # wind_minus bearing
+
+# use search cursor to find centroid of input feature class
+cursor = arcpy.da.SearchCursor(input_fc, "SHAPE@XY")
+centroid_coord = []
+centroid_field_list = ["ID", "X", "Y", "DIST", "BR_PLUS", "BR_MINUS", "SHAPE@"]
+for feature in cursor:
+    centroid_coord.append(feature[0])
+point = arcpy.Point()
+for pt in centroid_coord:
+    point.X = float(pt[0])
+    #print pt[0]
+    point.Y = float(pt[1])
+    #print pt[1]
+    pid = 1
+    distance = 10 # 10 miles for smoke, inserted for next block
+    # use insert cursor to insert centroid coordinates into centroid point
+    with arcpy.da.InsertCursor(centroid_point, centroid_field_list) as isCursor:
+        for item in pt:
+            XCoord = float(pt[0])
+            YCoord = float(pt[1])
+            new_point = [pid, pt[0], pt[1], distance, wind_plus, wind_minus, arcpy.Point(XCoord, YCoord)]
+            isCursor.insertRow(new_point)
+del cursor
+
+# use centroid feature as input for bearing/distance to line
+# create lines from centroid points, wind_plus, and wind_minus
+in_table = out_space + "\centroid.dbf"
+line_plus_fc = out_space + "\smoke_lines_plus.shp" # output feature class name
+line_minus_fc = out_space + "\smoke_lines_minus.shp"
+merge_lines = out_space + "\smoke_lines.shp"
+arcpy.BearingDistanceToLine_management(in_table, line_plus_fc, "X", "Y", "DIST", "MILES", "BR_PLUS", "DEGREES")
+arcpy.BearingDistanceToLine_management(in_table, line_minus_fc, "X", "Y", "DIST", "MILES", "BR_MINUS", "DEGREES")
+arcpy.Merge_management([line_plus_fc, line_minus_fc], merge_lines) # merge line_plus and line_minus
+arcpy.Delete_management(line_plus_fc) # delete intermediate data
+arcpy.Delete_management(line_minus_fc) # delete intermediate data
+
+# try and convert lines to polygons
+try:
+    cluster_tolerance = "0.1 Meters"
+    arcpy.FeatureToPolygon_management(merge_lines, output_fc, cluster_tolerance, "NO_ATTRIBUTES", "")
+except:
+    print "Something went wrong :("
+
+
+# use update cursor to get coordinates of vertices in input_fc
+# desc = arcpy.Describe(input_fc)
+# shape_field_name = desc.ShapeFieldName
+# test_for_coords = arcpy.UpdateCursor(input_fc)
+# for coord in test_for_coords:
+#     sample = coord.getValue(shape_field_name)
+#     for item in sample:
+#         for pair in item:
+#             print pair.X, pair.Y
+# del test_for_coords
