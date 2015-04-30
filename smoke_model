@@ -41,7 +41,7 @@ input_fc = arcpy.GetParameterAsText(0) # input feature class
 wind_from = arcpy.GetParameterAsText(1) # wind direction
 output_fc = arcpy.GetParameterAsText(2) # output feature class
 coord_sys = arcpy.GetParameterAsText(3) # coordinate system
-#coord_sys = arcpy.Describe(input_fc).spatialReference
+
 out_space = os.path.dirname(input_fc) # output workspace
 
 # deal with wind direction greater than 360
