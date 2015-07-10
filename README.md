@@ -7,3 +7,4 @@
 * quick_poly
 * quick_line
 * quick_point
+* UnzipGzip
