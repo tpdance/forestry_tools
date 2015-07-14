@@ -1,5 +1,5 @@
 # forestry_tools
-### ArcGIS and QGIS tools (coming soon) for forestry workflows
+### ArcGIS for forestry workflows
 ---
 **Scripts**
 * smoke_model
