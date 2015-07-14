@@ -8,3 +8,4 @@
 * quick_line
 * quick_point
 * UnzipGzip
+* batch_unzip
