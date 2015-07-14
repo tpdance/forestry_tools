@@ -11,4 +11,4 @@
 * batch_unzip
 
 **Toolbox**
-***Zipped folder containing scripts, toolbox, and support files***
+Zipped folder containing scripts, toolbox, and support files***
