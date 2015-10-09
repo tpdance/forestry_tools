@@ -7,9 +7,9 @@ __author__ = 'George Kipp'
     # (http://gis.stackexchange.com/questions/26215/export-all-coded-value-domains-from-a-geodatabase)
 
 # import modules
-import arcpy
+import arcpy, os
 
-arcpy.env.workspace = r"F:\ITree\ITree.gdb"
+arcpy.env.workspace = arcpy.GetParameterAsText(0)
 gdb = arcpy.env.workspace
 arcpy.env.overwriteOutput = True
 
