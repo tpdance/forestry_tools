@@ -207,4 +207,4 @@ try:
     arcpy.AddMessage("Successfully created smoke model. Regards: " + __author__)
     arcpy.AddMessage("Even better than a machine that goes, PING!")
 except:
-    arcpy.AddError("Error creating smoke model. Please contact " + __author__ " for help.")
+    arcpy.AddError("Error creating smoke model. Please contact " + __author__ + " for help.")
