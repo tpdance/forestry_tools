@@ -10,6 +10,7 @@
 * UnzipGzip
 * batch_unzip
 * export_CV_domains
+* MOFITS_from_MOForest_Inv
 
 **Toolbox**
 
