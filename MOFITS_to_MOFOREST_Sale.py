@@ -1,11 +1,3 @@
-# infile = r"D:\D_Drive\MoForest\Temp\65074.csv"
-# outfile = r"D:\D_Drive\MoForest\Temp\65074.dbs"
-# with open(infile, 'rb') as reader, open(outfile, 'wb') as writer:
-#     for line in reader:
-#         newline = line.strip('\r\n') + ',0,,'
-#         writer.write(newline)
-#         writer.write('\r\n')
-
 import tkinter as tk
 import os
 from tkFileDialog import askopenfilename
