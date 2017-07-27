@@ -33,7 +33,7 @@ __author__ = 'George Kipp'
 # import modules
 import arcpy, os, zipfile
 
-# input_dir = 'E:\\GIS\\LiDAR\\Missouri'
+# get input directory
 input_dir = arcpy.GetParameterAsText(0)
 output_dir = arcpy.GetParameterAsText(1)
 extension = ".zip"
